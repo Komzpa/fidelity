@@ -1,2 +1,4 @@
 fidelity
 ========
+
+Wireless geolocation library.
