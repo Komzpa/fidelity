@@ -10,8 +10,7 @@ wifi: [{"ss": 167.0, "mac": "f8:d1:11:32:56:cc", "ssid": "icemen"}, ...],
 }
 """
 
-
-def get_location(req):
+def get_location(req = {}):
     yar = {"common": {"version": "1.0", "api_key":
                       "AM68UVEBAAAAjygkZgIA_Wgbba5vOsfai2EAg41b0U2E44AAAAAAAAAAAACWTxLwE2AcETaBMml42EKlixR3dw=="}}
     if "wifi" not in req:
@@ -28,9 +27,7 @@ def get_location(req):
     if '<error code="6">Location not found</error>' in resp:
         return False
     else:
-        ret = json.loads(
-            urllib.urlopen("http://api.lbs.yandex.net/geolocation",
-                           urllib.urlencode({"json": json.dumps(yar)})).read().strip())
+        ret = json.loads(resp)
         lon, lat = ret["position"]["longitude"], ret["position"]["latitude"]
         if ret["position"]["type"] == "wifi":
             for ap in req:
