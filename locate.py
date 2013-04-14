@@ -2,11 +2,12 @@ import sensors.iwlist
 
 import databases.online.yandex
 import databases.online.openwlanmap
+import databases.online.maxmind2
+import databases.online.googlejsapi
 import databases.offline.binary
+import databases.offline.timezone
 
-sens = sensors.iwlist.get_state()
 
-print sens
 
 def printlink(loc):
     if loc:
@@ -14,10 +15,22 @@ def printlink(loc):
     else:
         print "..."
 
+loc = databases.offline.timezone.get_location()
+printlink(loc)
+
+sens = sensors.iwlist.get_state()
+
+print sens
+
+
+
 loc = databases.offline.binary.get_location(sens)
 printlink(loc)
-if not loc:
-    loc = databases.online.yandex.get_location(sens)
-    printlink(loc)
-    loc = databases.online.openwlanmap.get_location(sens)
-    printlink(loc)
+loc = databases.online.googlejsapi.get_location(sens)
+printlink(loc)
+loc = databases.online.yandex.get_location(sens)
+printlink(loc)
+loc = databases.online.maxmind2.get_location(sens)
+printlink(loc)
+loc = databases.online.openwlanmap.get_location(sens)
+printlink(loc)
