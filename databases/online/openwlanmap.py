@@ -1,37 +1,41 @@
 import urllib
 import re
 from ..offline import cache
+from ..algo.wifi_ap_average import wifi_ap_average
 
 
 def get_location(req):
     if "wifi" not in req:
         return False
     urlreqs = {}
-    for ap in req["wifi"]:
-        macstring = ap["mac"].upper().replace(":", "").replace("-", "")
-        urlreqs[ap["mac"]] = (urllib.urlopen('http://www.openwlanmap.org/findmac.php', urllib.urlencode(
-            {"lang": "en", "bssid": macstring, "step": "1"})), ap["ss"])
+    try:
+        for ap in req["wifi"]:
+            macstring = ap["mac"].upper().replace(":", "").replace("-", "")
+            urlreqs[ap["mac"]] = (urllib.urlopen('http://www.openwlanmap.org/findmac.php', urllib.urlencode(
+                {"lang": "en", "bssid": macstring, "step": "1"})), ap["ss"])
 
-    count = 0
-    rlon = 0
-    rlat = 0
-    for mac, ap in urlreqs.iteritems():
-        try:
-            ss = max(100 + ap[1], 1)
-            cnt = ap[0].read()[:]
-            bbox = re.search(r'bbox=\n(.*?),(.*?),(.*?),(.*?)&#38;layer',
-                             cnt, re.MULTILINE).groups()
-            lon = (float(bbox[0]) + float(bbox[2])) / 2
-            lat = (float(bbox[1]) + float(bbox[3])) / 2 
-            rlon += lon * ss
-            rlat += lat * ss
-            count += ss
-            cache.savewifi((mac, lon, lat), "data/openwlanmap.cache.bin")
-        except AttributeError:
-            pass
-    if count:
-        return {"position": {"latitude": rlat / count, "longitude": rlon / count, "accuracy": 15, "type": "wifi"}}
-    else:
+        aps = []
+        for mac, ap in urlreqs.iteritems():
+            try:
+                ss = max(100 + ap[1], 1)
+                cnt = ap[0].read()[:]
+                bbox = re.search(r'bbox=\n(.*?),(.*?),(.*?),(.*?)&#38;layer',
+                                cnt, re.MULTILINE).groups()
+                lon = (float(bbox[0]) + float(bbox[2])) / 2
+                lat = (float(bbox[1]) + float(bbox[3])) / 2 
+                aps.append([lon, lat, ss, mac.replace(":", "").replace("-", "")])
+                
+                cache.savewifi((mac, lon, lat), "data/openwlanmap.cache.bin")
+            except AttributeError:
+                pass
+        if aps:
+            res = wifi_ap_average(aps)
+            if res:
+                rlon, rlat, acc = res
+                return {"position": {"latitude": rlat, "longitude": rlon, "accuracy": acc, "type": "wifi"}}
+        else:
+            return False
+    except:
         return False
 
 

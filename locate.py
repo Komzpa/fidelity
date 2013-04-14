@@ -7,30 +7,24 @@ import databases.online.googlejsapi
 import databases.offline.binary
 import databases.offline.timezone
 
-
-
 def printlink(loc):
     if loc:
-        print "http://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16" % (loc["position"]["latitude"], loc["position"]["longitude"])
+        print "http://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16 (accuracy %s m)" % (loc["position"]["latitude"], loc["position"]["longitude"], loc["position"]["accuracy"])
     else:
-        print "..."
-
-loc = databases.offline.timezone.get_location()
-printlink(loc)
+        print "cannot determine location"
 
 sens = sensors.iwlist.get_state()
 
-print sens
+ll = []
+ll.append(databases.offline.timezone.get_location())
+ll.append(databases.offline.binary.get_location(sens))
+ll.append(databases.online.googlejsapi.get_location(sens))
+ll.append(databases.online.yandex.get_location(sens))
+ll.append(databases.online.maxmind2.get_location(sens))
+ll.append(databases.online.openwlanmap.get_location(sens))
 
+ll = [x for x in ll if x]
+ll.sort(key=lambda x: x["position"]["accuracy"])
 
+printlink(ll[0])
 
-loc = databases.offline.binary.get_location(sens)
-printlink(loc)
-loc = databases.online.googlejsapi.get_location(sens)
-printlink(loc)
-loc = databases.online.yandex.get_location(sens)
-printlink(loc)
-loc = databases.online.maxmind2.get_location(sens)
-printlink(loc)
-loc = databases.online.openwlanmap.get_location(sens)
-printlink(loc)
