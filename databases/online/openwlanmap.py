@@ -24,7 +24,6 @@ def get_location(req):
                 lon = (float(bbox[0]) + float(bbox[2])) / 2
                 lat = (float(bbox[1]) + float(bbox[3])) / 2 
                 aps.append([lon, lat, ss, mac.replace(":", "").replace("-", "")])
-                
                 cache.savewifi((mac, lon, lat), "data/openwlanmap.cache.bin")
             except AttributeError:
                 pass
@@ -32,7 +31,7 @@ def get_location(req):
             res = wifi_ap_average(aps)
             if res:
                 rlon, rlat, acc = res
-                return {"position": {"latitude": rlat, "longitude": rlon, "accuracy": acc, "type": "wifi"}}
+                return {"position": {"latitude": rlat, "longitude": rlon, "accuracy": acc, "type": "wifi"}, "service": "openwlanmap online"}
         else:
             return False
     except:

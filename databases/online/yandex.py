@@ -35,6 +35,7 @@ def get_location(req = {}):
                     cache.savewifi((ap["mac"], lon, lat), "data/yandex.cache.bin")
             ret["position"]["accuracy"] = ret["position"]["precision"]
             del ret["position"]["precision"]
+            ret["service"] = "yandex"
             return ret
     except:
         return False

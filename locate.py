@@ -13,11 +13,12 @@ os.chdir(os.path.abspath(os.path.dirname(sys.modules['__main__'].__file__)))
 
 def printlink(loc):
     if loc:
-        print "http://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16 (accuracy %s m)" % (loc["position"]["latitude"], loc["position"]["longitude"], loc["position"]["accuracy"])
+        print "http://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16 (accuracy %s m, service %s)" % (loc["position"]["latitude"], loc["position"]["longitude"], loc["position"]["accuracy"], loc["service"])
     else:
         print "cannot determine location"
 
 sens = sensors.iwlist.get_state()
+print "Found wifi:", sens
 
 ll = []
 ll.append(databases.offline.timezone.get_location())
@@ -28,7 +29,8 @@ ll.append(databases.online.maxmind2.get_location(sens))
 ll.append(databases.online.openwlanmap.get_location(sens))
 
 ll = [x for x in ll if x]
+
 ll.sort(key=lambda x: x["position"]["accuracy"])
 
-printlink(ll[0])
+[printlink(x) for x in ll]
 

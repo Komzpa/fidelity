@@ -44,6 +44,6 @@ def get_location(req = {}):
                         coords = coords[2:]
         lon = lon * lon_sign
 
-        return {"position":{"type":"timzone", "latitude": lat, "longitude": lon, "accuracy": 150000.}}
+        return {"position":{"type":"timzone", "latitude": lat, "longitude": lon, "accuracy": 150000.}, "service": "timezone"}
     except:
         return False

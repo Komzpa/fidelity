@@ -39,7 +39,7 @@ def get_location(req):
         res = wifi_ap_average(aps)
         if res:
             rlon, rlat, acc = res
-            return {"position": {"latitude": rlat, "longitude": rlon, "accuracy": acc, "type": "wifi"}}
+            return {"position": {"latitude": rlat, "longitude": rlon, "accuracy": acc, "type": "wifi"}, "service": "binary offline cache"}
     else:
         return False
 
