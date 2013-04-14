@@ -1,3 +1,4 @@
+import sensors.networkmanager
 import sensors.iwlist
 
 import databases.online.yandex
@@ -17,20 +18,26 @@ def printlink(loc):
     else:
         print "cannot determine location"
 
-sens = sensors.iwlist.get_state()
+def filter_accuracy(ll, accuracy):
+    ll = [x for x in ll if x]
+    ll.sort(key=lambda x: x["position"]["accuracy"])
+    is_good = ll and ll[0]["position"]["accuracy"] <= accuracy
+    return is_good, ll
+
+sens = sensors.networkmanager.get_state()
+if not sens:
+    sens = sensors.iwlist.get_state()
 print "Found wifi:", sens
 
 ll = []
 ll.append(databases.offline.timezone.get_location())
 ll.append(databases.offline.binary.get_location(sens))
-ll.append(databases.online.googlejsapi.get_location(sens))
-ll.append(databases.online.yandex.get_location(sens))
-ll.append(databases.online.maxmind2.get_location(sens))
-ll.append(databases.online.openwlanmap.get_location(sens))
-
-ll = [x for x in ll if x]
-
-ll.sort(key=lambda x: x["position"]["accuracy"])
-
+is_good, ll = filter_accuracy(ll, 100000)
+if not is_good:
+    ll.append(databases.online.googlejsapi.get_location(sens))
+    ll.append(databases.online.yandex.get_location(sens))
+    ll.append(databases.online.maxmind2.get_location(sens))
+    ll.append(databases.online.openwlanmap.get_location(sens))
+    is_good, ll = filter_accuracy(ll, 100000)
 [printlink(x) for x in ll]
 
