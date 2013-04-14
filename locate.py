@@ -7,6 +7,10 @@ import databases.online.googlejsapi
 import databases.offline.binary
 import databases.offline.timezone
 
+import sys
+import os
+os.chdir(os.path.abspath(os.path.dirname(sys.modules['__main__'].__file__)))
+
 def printlink(loc):
     if loc:
         print "http://www.openstreetmap.org/?mlat=%s&mlon=%s&zoom=16 (accuracy %s m)" % (loc["position"]["latitude"], loc["position"]["longitude"], loc["position"]["accuracy"])
