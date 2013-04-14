@@ -13,11 +13,13 @@ def get_state():
         if line[:4] == "Cell":
             if ap:
                 wifi.append(ap)
-                ap = {}
+                ap = {"ss":1, "ssid":"", "mac":""}
             if " - Address: " in line:
                 ap["mac"] = line[-17:]
         if "Quality" in line and "dBm" in line:
             ap["ss"] = float(line.split('level=')[1].split(" dBm")[0])
+        elif "Quality" in line and "/100" in line:
+            ap["ss"] = float(line.split('level=')[1].split("/100")[0])
         if line[:5] == "ESSID":
             ap["ssid"] = line[7:-1]
     return {"wifi": wifi}
