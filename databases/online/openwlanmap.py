@@ -21,16 +21,16 @@ def get_location(req):
             cnt = ap[0].read()[:]
             bbox = re.search(r'bbox=\n(.*?),(.*?),(.*?),(.*?)&#38;layer',
                              cnt, re.MULTILINE).groups()
-            lon = (float(bbox[0]) + float(bbox[2])) / 2 * ss
-            lat = (float(bbox[1]) + float(bbox[3])) / 2 * ss
-            rlon += lon
-            rlat += lat
+            lon = (float(bbox[0]) + float(bbox[2])) / 2
+            lat = (float(bbox[1]) + float(bbox[3])) / 2 
+            rlon += lon * ss
+            rlat += lat * ss
             count += ss
             cache.savewifi((mac, lon, lat), "data/openwlanmap.cache.bin")
         except AttributeError:
             pass
     if count:
-        return {"position": {"latitude": rlat / count, "longitude": rlon / count, "accuracy": 15}}
+        return {"position": {"latitude": rlat / count, "longitude": rlon / count, "accuracy": 15, "type": "wifi"}}
     else:
         return False
 
