@@ -10,7 +10,6 @@ CACHE = {}
 def readwifi(files=None, directory='data/'):
     if not files:
         files = [x for x in os.listdir(directory) if "bin" in x]
-    ss = {}
     for fname in files:
         wf = open(directory + fname)
         ff = True
@@ -18,13 +17,12 @@ def readwifi(files=None, directory='data/'):
             ff = wf.read(16)
             if ff:
                 (mac, lon, lat) = struct.unpack('!qff', ff)
-                ss[mac] = (lon, lat)
-    return ss
+                yield (mac, (lon, lat))
 
 def get_location(req):
     global CACHE
     if not CACHE:
-        CACHE = readwifi()
+        CACHE = dict(readwifi())
     if "wifi" not in req:
         return False
     aps = []
