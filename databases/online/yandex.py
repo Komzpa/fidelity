@@ -21,7 +21,7 @@ def get_location(req = {}):
         yar["wifi_networks"] = []
         for ap in req["wifi"]:
             yar["wifi_networks"].append(
-                {"mac": ap["mac"].upper().replace(":", "-")})
+                {"mac": ap["mac"].upper().replace(":", "-"), "signal_strength": ap["ss"], "age": 0})
     try:
         resp = urllib.urlopen("http://api.lbs.yandex.net/geolocation", urllib.urlencode({
                             "json": json.dumps(yar)})).read().strip()
