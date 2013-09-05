@@ -1,5 +1,8 @@
 import subprocess
-import dbus
+try:
+    import dbus
+except ImportError:
+    dbus = False
 
 class WiFiList(): 
     def __init__(self):
