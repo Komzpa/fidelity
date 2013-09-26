@@ -74,11 +74,15 @@ def saveip((ip, lon, lat)):
     for bit in range(4,16):
         r.set(ip2key(ip, bit), (lon, lat))
 
+def savewifi((mac, lon, lat)):
+    if not r.get(mac2key(mac)):
+        r.set(mac2key(mac), pack_ll((lon, lat)))
+
 try:
     loaded = r.get('fidelity:loaded')
     if not loaded:
         loadcache()
         r.set('fidelity:loaded', 'yes')
-        r.expire('fidelity:loaded', 86400)
+       # r.expire('fidelity:loaded', 86400)
 except:
     pass
