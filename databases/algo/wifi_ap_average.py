@@ -1,22 +1,5 @@
 import math
-
-def Distance(t1, t2):
-    RADIUS = 6371000.  # earth's mean radius in km
-    p1 = [0, 0]
-    p2 = [0, 0]
-    p1[0] = t1[0] * math.pi / 180.
-    p1[1] = t1[1] * math.pi / 180.
-    p2[0] = t2[0] * math.pi / 180.
-    p2[1] = t2[1] * math.pi / 180.
-
-    d_lat = (p2[0] - p1[0])
-    d_lon = (p2[1] - p1[1])
-
-    a = math.sin(d_lat / 2) * math.sin(d_lat / 2) + math.cos(
-        p1[0]) * math.cos(p2[0]) * math.sin(d_lon / 2) * math.sin(d_lon / 2)
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    d = RADIUS * c
-    return d
+from __init__ import *
 
 try:
     BADAPS = eval(open('data/black.lst').read())
@@ -63,4 +46,4 @@ def wifi_ap_average(aps):
         rlat += ap[2] * ap[1]
         count += ap[2]
         acc += ap[2] * ap[4]
-    return (rlon / count, rlat / count, max(10., acc / count))
+    return (rlon / count, rlat / count, max(50., acc / count))

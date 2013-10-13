@@ -5,6 +5,7 @@ import geoip
 import struct
 
 from ..algo.wifi_ap_average import wifi_ap_average
+from ..algo.weighted_storage_cube import shelf
 from .. import *
 
 try:
@@ -55,34 +56,52 @@ def get_location(req):
                 return {"position": {"latitude": rlat, "longitude": rlon, "accuracy": acc, "type": "wifi"}, "service": "redis cache"}
     if "ip" in req:
         refloc = geoip.get_location(req)
-        for bit in range(4,16):
+        for bit in range(4, 16):
             ipl = r.get(ip2key(req["ip"], bit))
             if ipl:
-                ipl = unpack_ll(ipl)
-                rlon = ipl[0]
-                rlat = ipl[1]
-                acc = 14.*(bit**2.8)
-                loc = {"position": {"latitude": rlat, "longitude": rlon, "accuracy": acc, "type": "ip"}, "service": "redis cache"}
+                s = shelf()
+                s.loads(ipl)
+                t = s.get_average()
+                if not t:
+                    continue
+                t["type"] = "ip"
+                t["accuracy"] = max(500.1, t["accuracy"], 14.*(bit**2.7))
+                loc = {"position": t, "service": "redis cache"}
                 if refloc:
-                    if distance(loc, refloc) > max(refloc["position"]["accuracy"], 200000):
+                    if (bit > 8) and (distance(loc, refloc) > max(refloc["position"]["accuracy"], 200000)):
                         continue
+                    if refloc["position"]["accuracy"] < loc["position"]["accuracy"]:
+                        break
                 return loc
         return refloc
 
-def saveip((ip, lon, lat)):
+def saveip(ip, pos, force = True):
     global r
-    for bit in range(4,16):
-        r.set(ip2key(ip, bit), (lon, lat))
+    for bit in range(4, 16):
+        key = ip2key(ip, bit)
+        s = shelf()
+        shl = r.get(key)
+        if shl:
+            s.loads(shl)
+            if not force:
+                break
+        s.add_point(pos)
+        r.set(key, s.dumps())
 
-def savewifi((mac, lon, lat)):
-    if not r.get(mac2key(mac)):
+def savewifi((mac, lon, lat), force = False):
+    is_new = not r.get(mac2key(mac))
+    if force or is_new:
         r.set(mac2key(mac), pack_ll((lon, lat)))
+    return is_new
+
+def dropwifi(mac):
+    r.delete(mac2key(mac))
 
 try:
     loaded = r.get('fidelity:loaded')
     if not loaded:
         loadcache()
         r.set('fidelity:loaded', 'yes')
-       # r.expire('fidelity:loaded', 86400)
+      # r.expire('fidelity:loaded', 86400)
 except:
     pass
