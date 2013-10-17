@@ -47,13 +47,17 @@ def get_location(req):
             ss = max(100 + float(ap["ss"]), 1)
             apl = r.get(mac2key(mac))
             if apl:
-                apl = unpack_ll(apl)
-                aps.append([apl[0], apl[1], ss, mac2str(ap["mac"])])
+                s = shelf()
+                s.loads(apl)
+                s = s.get_average()
+                if s:
+                    s["ss"] = ss
+                    aps.append(s)
         if aps:
             res = wifi_ap_average(aps)
             if res:
-                rlon, rlat, acc = res
-                return {"position": {"latitude": rlat, "longitude": rlon, "accuracy": acc, "type": "wifi"}, "service": "redis cache"}
+                res["type"] = "wifi"
+                return {"position": res, "service": "redis cache"}
     if "ip" in req:
         refloc = geoip.get_location(req)
         for bit in range(4, 16):
@@ -71,7 +75,7 @@ def get_location(req):
                     if (bit > 8) and (distance(loc, refloc) > max(refloc["position"]["accuracy"], 200000)):
                         continue
                     if refloc["position"]["accuracy"] < loc["position"]["accuracy"]:
-                        break
+                        continue
                 return loc
         return refloc
 
@@ -88,11 +92,15 @@ def saveip(ip, pos, force = True):
         s.add_point(pos)
         r.set(key, s.dumps())
 
-def savewifi((mac, lon, lat), force = False):
-    is_new = not r.get(mac2key(mac))
-    if force or is_new:
-        r.set(mac2key(mac), pack_ll((lon, lat)))
-    return is_new
+def savewifi(mac, pos, force = True):
+    ap = r.get(mac2key(mac))
+    if force or not ap:
+        s = shelf()
+        if ap:
+            s.loads(ap)
+        s.add_point(pos)
+        r.set(mac2key(mac), s.dumps())
+    return ap
 
 def dropwifi(mac):
     r.delete(mac2key(mac))

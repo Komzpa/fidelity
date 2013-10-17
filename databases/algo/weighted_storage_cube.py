@@ -20,11 +20,11 @@ class weighted_storage_cube:
         }
     def add_point(self, point):
         point = {
-            "latitude": point.get("latitude", point.get("latitude")),
-            "longitude": point.get("longitude", point.get("longitude")),
-            "altitude": point.get("altitude", point.get("altitude")),
+            "latitude": point.get("latitude", point.get("lat")),
+            "longitude": point.get("longitude", point.get("lon")),
+            "altitude": point.get("altitude", point.get("alt")),
             "time": point.get("time", point.get("timestamp", time.time())),
-            "accuracy": point.get("accuracy", point.get("accuracy", 90))
+            "accuracy": point.get("accuracy", point.get("acc", 90))
         }
         # timestamp filtering - we don't need old points
         if self.cube["count"]:
