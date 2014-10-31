@@ -11,11 +11,11 @@ class weighted_storage_cube:
     def __init__(self, expire = 86400 * 30):
         self.expire = expire
         self.cube = {
-            "latitude": [0, 0, 0],
-            "longitude": [0, 0, 0],
-            "altitude": [100000, 0, -100000],
-            "time": [0, 0, 0],
-            "accuracy": [40000000, 0, 0],
+            "latitude": (0, 0, 0),
+            "longitude": (0, 0, 0),
+            "altitude": (100000, 0, -100000),
+            "time": (0, 0, 0),
+            "accuracy": (40000000, 0, 0),
             "count": 0
         }
     def add_point(self, point):
@@ -36,23 +36,36 @@ class weighted_storage_cube:
             if v:
                 v = float(v)
                 if not self.cube["count"]:
-                    self.cube[k] = [v, v, v]
+                    self.cube[k] = (v, v, v)
                 elif self.cube[k][2] < self.cube[k][0]:
-                    self.cube[k] = [v, v, v]
+                    self.cube[k] = (v, v, v)
                 else:
                     self.cube[k] = [min(v, self.cube[k][0]),
                                (self.cube[k][1] * self.cube["count"] + v) / (self.cube["count"] + 1),
                                max(v, self.cube[k][0])]
         self.cube["count"] += 1
         return True
+    def add_cube(self, cube):
+        if cube.is_valid():
+            if self.cube["count"]:
+                for k in self.order:
+                    i = self.cube[k]
+                    o = cube.cube[k]
+                    self.cube[k] = (min(i[0], o[0]),
+                                    (self.cube["count"] * i[1] + cube.cube["count"] * o[1]) / (self.cube["count"] + cube.cube["count"]),
+                                    max(i[2], o[2]))
+                self.cube["count"] += cube.cube["count"]
+            else:
+                self.cube = cube.cube
+
     def get_average(self):
         return {
-            "altitude": self.cube["altitude"][1], 
-            "longitude": self.cube["longitude"][1], 
-            "time": self.cube["time"][1], 
+            "altitude": self.cube["altitude"][1],
+            "longitude": self.cube["longitude"][1],
+            "time": self.cube["time"][1],
             "latitude": self.cube["latitude"][1],
             "accuracy": max(
-                self.cube["accuracy"][1], 
+                self.cube["accuracy"][1],
                 Distance((self.cube["longitude"][0], self.cube["latitude"][0]), (self.cube["longitude"][2], self.cube["latitude"][2]))/2),
             "count": self.cube["count"]
             }
@@ -63,17 +76,17 @@ class weighted_storage_cube:
             timestamp = time.time()
         return self.cube["count"] and (self.cube["time"][2] + self.expire) > timestamp and (self.cube["time"][0] - self.expire) < timestamp
     def dumps(self):
-        dump = struct.pack("!L", self.cube["count"])
+        dump = struct.pack("=L", self.cube["count"])
         for k in self.order:
-            dump += struct.pack("!dff", self.cube[k][0], self.cube[k][1] - self.cube[k][0], self.cube[k][1] - self.cube[k][0])
+            dump += struct.pack("=dff", self.cube[k][0], self.cube[k][1] - self.cube[k][0], self.cube[k][1] - self.cube[k][0])
       #  print len(dump)
         return dump
     def loads(self, string, offset = 0):
-        self.cube["count"] = struct.unpack_from("!L", string)[0]
+        self.cube["count"] = struct.unpack_from("=L", string)[0]
         offset += 4
         for k in self.order:
-            (smin, savg, smax) = struct.unpack_from("!dff", string, offset)
-            offset += struct.calcsize("!dff")
+            (smin, savg, smax) = struct.unpack_from("=dff", string, offset)
+            offset += struct.calcsize("=dff")
             self.cube[k] = [smin, smin + savg, smin + smax]
         return offset
     def __repr__(self):
@@ -124,7 +137,7 @@ class shelf:
     def loads(self, string):
         if len(string) < 84:
             try:
-                lon, lat = struct.unpack("!dd", string)
+                lon, lat = struct.unpack("=dd", string)
                 self.add_point({"latitude": lat, "longitude": lon, "timestamp": 0})
                 return
             except struct.error:
@@ -135,7 +148,10 @@ class shelf:
             offset = cube.loads(string, offset)
             center = cube.get_average()
             tile = tile_number(center["longitude"], center["latitude"], self.zoom)
-            self.shelf[tile] = cube
+            if tile in self.shelf:
+                self.shelf[tile].add_cube(cube)
+            else:
+                self.shelf[tile] = cube
 
 if __name__ == "__main__":
     print {"altitude": 52.5, "longitude": 121.51784396, "time": 1381266175, "latitude": 25.00435646, "speed": 0.0, "accuracy": 33.0}
