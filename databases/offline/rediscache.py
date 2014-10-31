@@ -14,11 +14,11 @@ except:
     r = False
 
 def pack_ll(ll):
-    return struct.pack("!dd", ll[0], ll[1])
+    return struct.pack("=dd", ll[0], ll[1])
 
 def unpack_ll(ll):
     try:
-        return struct.unpack("!dd", ll)
+        return struct.unpack("=dd", ll)
     except struct.error:
         if ll[0] == "(":
             return eval(ll)
@@ -46,10 +46,12 @@ def get_location(req):
             mac = mac2int(ap["mac"])
             ss = max(100 + float(ap["ss"]), 1)
             apl = r.get(mac2key(mac))
+
             if apl:
                 s = shelf()
                 s.loads(apl)
                 s = s.get_average()
+                print s
                 if s:
                     s["ss"] = ss
                     aps.append(s)
@@ -60,12 +62,13 @@ def get_location(req):
                 return {"position": res, "service": "redis cache"}
     if "ip" in req:
         refloc = geoip.get_location(req)
-        for bit in range(4, 16):
+        for bit in range(4, 15):
             ipl = r.get(ip2key(req["ip"], bit))
             if ipl:
                 s = shelf()
                 s.loads(ipl)
                 t = s.get_average()
+                print bit, t
                 if not t:
                     continue
                 t["type"] = "ip"
@@ -108,7 +111,7 @@ def dropwifi(mac):
 try:
     loaded = r.get('fidelity:loaded')
     if not loaded:
-        loadcache()
+        #loadcache()
         r.set('fidelity:loaded', 'yes')
       # r.expire('fidelity:loaded', 86400)
 except:
