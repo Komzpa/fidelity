@@ -22,7 +22,10 @@ def get_state():
             ap["ss"] = float(line.split('level=')[1].split("/100")[0])
         if line[:5] == "ESSID":
             ap["ssid"] = line[7:-1]
-    return {"wifi": wifi}
+    if wifi:
+        return {"wifi": wifi}
+    else:
+        return None
 
 if __name__ == "__main__":
     print get_state()

@@ -4,14 +4,13 @@ import subprocess
 
 def get_state():
     arp_table = open('/proc/net/arp', 'r')
-#    wifi = []
-    macs = set() 
+    macs = set()
     arp_table.next()
     for line in arp_table:
         line = line.strip().split()
-	macs.add(line[3])
+    macs.add(line[3])
     macs.discard('00:00:00:00:00:00')
-    wifi = [{'mac':i} for i in macs]
+    wifi = [{'mac':i, 'ss':-30} for i in macs]
     return {"wifi": wifi}
 
 if __name__ == "__main__":

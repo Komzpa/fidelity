@@ -1,9 +1,11 @@
 import sensors.networkmanager
 import sensors.iwlist
+import sensors.arp
 
 import databases.online.yandex
 import databases.online.openwlanmap
 import databases.online.maxmind2
+import databases.online.mozilla
 import databases.online.googlejsapi
 import databases.offline.binary
 import databases.offline.timezone
@@ -27,6 +29,8 @@ def filter_accuracy(ll, accuracy):
 sens = sensors.networkmanager.get_state()
 if not sens:
     sens = sensors.iwlist.get_state()
+if not sens:
+    sens = sensors.arp.get_state()
 print "Found wifi:", sens
 
 ll = []
@@ -35,6 +39,7 @@ ll.append(databases.offline.binary.get_location(sens))
 is_good, ll = filter_accuracy(ll, 100000)
 if not is_good:
     ll.append(databases.online.googlejsapi.get_location(sens))
+    ll.append(databases.online.mozilla.get_location(sens))
     ll.append(databases.online.yandex.get_location(sens))
     ll.append(databases.online.maxmind2.get_location(sens))
     ll.append(databases.online.openwlanmap.get_location(sens))

@@ -4,7 +4,7 @@ try:
 except ImportError:
     dbus = False
 
-class WiFiList(): 
+class WiFiList():
     def __init__(self):
         self.NM = 'org.freedesktop.NetworkManager'
         self.has_nm = True
@@ -12,7 +12,7 @@ class WiFiList():
         try:
             self.bus = dbus.SystemBus()
             nm = self.bus.get_object(self.NM, '/org/freedesktop/NetworkManager')
-            self.devlist = nm.GetDevices(dbus_interface = self.NM) 
+            self.devlist = nm.GetDevices(dbus_interface = self.NM)
         except:
             self.has_nm = False
 
@@ -48,7 +48,8 @@ def get_state():
     global wfl
     if wfl.has_nm:
         wfl.update()
-        return {"wifi": wfl.aps}
+        if wfl.aps:
+            return {"wifi": wfl.aps}
     else:
         return {}
 
