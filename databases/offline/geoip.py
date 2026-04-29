@@ -1,11 +1,13 @@
-import json
-import urllib
+try:
+    import GeoIP
 
-import GeoIP
-geoip = GeoIP.open('data/GeoLiteCity.dat', GeoIP.GEOIP_MEMORY_CACHE)
+    geoip = GeoIP.open("data/GeoLiteCity.dat", GeoIP.GEOIP_MEMORY_CACHE)
+except Exception:
+    geoip = None
 
-def get_location(req = {}):
-    if "ip" in req:
+
+def get_location(req={}):
+    if "ip" in req and geoip:
         try:
             user_geoip = geoip.record_by_addr(req["ip"])
             acc = 400000
@@ -15,6 +17,15 @@ def get_location(req = {}):
                 acc = 150000
             if user_geoip["city"]:
                 acc = 30000
-            return {"position":{"type":"ip", "latitude": user_geoip["latitude"], "longitude": user_geoip["longitude"], "accuracy": acc}, "service": "geoip offline"}
-        except:
+            return {
+                "position": {
+                    "type": "ip",
+                    "latitude": user_geoip["latitude"],
+                    "longitude": user_geoip["longitude"],
+                    "accuracy": acc,
+                },
+                "service": "geoip offline",
+            }
+        except (KeyError, TypeError):
             return False
+    return False
