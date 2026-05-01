@@ -1,6 +1,15 @@
 import struct
+from pathlib import Path
 
-from .. import *
+from .. import mac2int
 
-def savewifi((mac, lon, lat), fname='data/our.bin'):
-    open(fname, 'a+b').write(struct.pack('!qff', mac2int(mac), lon, lat))
+
+def savewifi(ap, fname="data/our.bin"):
+    mac, lon, lat = ap
+    parent = Path(fname).parent
+    if parent != Path("."):
+        parent.mkdir(parents=True, exist_ok=True)
+    if not isinstance(mac, int):
+        mac = mac2int(mac)
+    with open(fname, "ab") as cache_file:
+        cache_file.write(struct.pack("!qff", mac, lon, lat))

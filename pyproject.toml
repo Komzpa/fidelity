@@ -1,0 +1,40 @@
+[project]
+name = "fidelity"
+version = "0.1.0"
+description = "Wireless geolocation helpers for Wi-Fi, ARP, IP, and offline cache signals."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+
+[project.scripts]
+fidelity-locate = "locate:main"
+fidelity-build-spatial-cache = "databases.offline.spatial:main"
+fidelity-modemmanager-setup = "sensors.modemmanager:main"
+fidelity-record-observation = "observations:main"
+fidelity-retile = "bin_retile:main"
+fidelity-serve = "server:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.8",
+]
+postgres = ["psycopg2-binary>=2.9"]
+redis = ["redis>=5"]
+
+[tool.setuptools.packages.find]
+include = ["databases*", "sensors*"]
+
+[tool.setuptools]
+py-modules = ["locate", "bin_retile", "observations", "server"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
